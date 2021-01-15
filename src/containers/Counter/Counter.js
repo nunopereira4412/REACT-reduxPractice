@@ -3,39 +3,57 @@ import React, { Component } from 'react';
 import CounterControl from '../../components/CounterControl/CounterControl';
 import CounterOutput from '../../components/CounterOutput/CounterOutput';
 
-class Counter extends Component {
-    state = {
-        counter: 0
-    }
+import {connect}            from 'react-redux';
+import * as actionTypes     from '../../store/actions';
 
-    counterChangedHandler = ( action, value ) => {
-        switch ( action ) {
-            case 'inc':
-                this.setState( ( prevState ) => { return { counter: prevState.counter + 1 } } )
-                break;
-            case 'dec':
-                this.setState( ( prevState ) => { return { counter: prevState.counter - 1 } } )
-                break;
-            case 'add':
-                this.setState( ( prevState ) => { return { counter: prevState.counter + value } } )
-                break;
-            case 'sub':
-                this.setState( ( prevState ) => { return { counter: prevState.counter - value } } )
-                break;
-        }
-    }
+class Counter extends Component {
 
     render () {
+        const storedResults = this.props.storedResults.map((res) => (
+           <li 
+                key={res.id} 
+                onClick={() => this.props.delValue(res.id)} 
+            >
+                {res.value}
+            </li> 
+        ));
+
         return (
             <div>
-                <CounterOutput value={this.state.counter} />
-                <CounterControl label="Increment" clicked={() => this.counterChangedHandler( 'inc' )} />
-                <CounterControl label="Decrement" clicked={() => this.counterChangedHandler( 'dec' )}  />
-                <CounterControl label="Add 5" clicked={() => this.counterChangedHandler( 'add', 5 )}  />
-                <CounterControl label="Subtract 5" clicked={() => this.counterChangedHandler( 'sub', 5 )}  />
+                <CounterOutput value={this.props.counter} />
+                <CounterControl label="Increment" clicked={this.props.incCounter} />
+                <CounterControl label="Decrement" clicked={this.props.decCounter}  />
+                <CounterControl label="Add 5" clicked={this.props.addValueToCounter}  />
+                <CounterControl label="Subtract 5" clicked={this.props.subValueToCounter}  />
+                <hr/>
+                <button onClick={this.props.storeResult}>Store Result</button>
+                <ul>
+                    {storedResults}
+                </ul>
             </div>
         );
     }
 }
 
-export default Counter;
+//get the state from the store as props
+const mapStateToProps = state => {
+    return {
+        counter: state.counter,
+        storedResults: state.storedResults
+    }
+};
+
+//dispatch actions
+const mapDispatchToProps = dispatch => {
+    return {
+        incCounter:        () => dispatch({type: actionTypes.INC}),
+        decCounter:        () => dispatch({type: actionTypes.DEC}),
+        addValueToCounter: () => dispatch({type: actionTypes.ADD, value: 5}),
+        subValueToCounter: () => dispatch({type: actionTypes.SUB, value: 5}),
+        storeResult:       () => dispatch({type: actionTypes.STORE_RESULT}),
+        delValue:          (id) => dispatch({type: actionTypes.DEL, idToDel: id})
+    }
+};
+
+//if i have a container that only needs to dispatch actions null can be assigned to the 1st argument
+export default connect(mapStateToProps, mapDispatchToProps)(Counter);
